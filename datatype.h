@@ -31,5 +31,5 @@ typedef struct bit {
     OperatorType opType;
 
     union VariableValue variableValue;
-    struct bitList *args;
+    struct bitList     *args;
 } bit;

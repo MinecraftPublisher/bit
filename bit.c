@@ -60,7 +60,7 @@ bitList *readBitList(byte *memory, unsigned long *programCounter, string code, l
         })
     #define idebug(...) ({ printf(__VA_ARGS__); })
 #else
-    #define debug(...)  ({  fprintf(devNull, __VA_ARGS__); })
+    #define debug(...)  ({ fprintf(devNull, __VA_ARGS__); })
     #define idebug(...) ({ fprintf(devNull, __VA_ARGS__); })
 #endif
 
@@ -190,7 +190,7 @@ char runProgram(string code, long size) {
 }
 
 int main() {
-    devNull = fopen("/dev/null", "w");
+    devNull         = fopen("/dev/null", "w");
     byte code[ 13 ] = { 2, 2, // NAND
 
                         1, 1, // LEFT const

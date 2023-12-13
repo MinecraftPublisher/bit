@@ -17,7 +17,7 @@ run: build
 output: build
 	build/bit > build/output.example
 
-comm: clean
+comm: clean .git
 	git add .
 	read -p "Enter a commit message: " com_msg
 	git commit -m "$com_msg"

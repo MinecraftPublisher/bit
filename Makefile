@@ -19,7 +19,8 @@ output: build
 
 comm: clean
 	git add .
-	echo 'read -p "Enter a commit message: " com_msg && git commit -m "${com_msg}"' | bash
+	@echo Enter a commit message:
+	@read com_msg && git commit -m "$com_msg"
 
 push: comm clean
 	git push

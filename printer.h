@@ -84,7 +84,7 @@ void PRINT_BIT_LIST(bitList *input, int depth, string pointer) {
         printA("\n");
         for (int i = 0; i < input->size - 1; i++) {
             PRINT_BIT(&input->data[ i ], depth + 2, pointer);
-            if (i + 1 != input->size) printA(",\n");
+            if (i + 2 < input->size) printA(",\n");
         }
         printA("\n");
         printWhitespace(depth + 1);

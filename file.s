@@ -1,4 +1,2 @@
-set(
-    &90,
-    nop; nop
-    );
+function(@1026, @0, call(@1026));
+call(@1026);

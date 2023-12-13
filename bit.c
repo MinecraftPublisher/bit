@@ -153,7 +153,8 @@ bit *readBit(byte *memory, unsigned long *programCounter, string code, long size
                 arguments[ 1 ] = *readBit(memory, programCounter, code, size); // bit addr
                 break;
             }
-            default: break; // UNUSED operator
+            default: // UNUSED operator
+                break;
         }
 
         part->args = _arguments;
@@ -202,6 +203,6 @@ int main(int argc, string *argv) {
     string text = f->content;
     u8     size = f->size;
 
-    devNull         = fopen("/dev/null", "w");
+    devNull = fopen("/dev/null", "w");
     runProgram(text, size - 1);
 }

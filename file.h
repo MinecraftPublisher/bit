@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef uint8_t u8;
+typedef long long u8;
 typedef char   *string;
 #define bool  char
 #define false 0

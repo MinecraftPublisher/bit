@@ -1,0 +1,9 @@
+# input bit assembly file
+# file.s
+# bit interpreter + assembler build directory
+build/
+# output bit machine code file
+a.out
+# why is the assembler here
+asm
+bit

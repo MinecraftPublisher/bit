@@ -189,18 +189,19 @@ char runProgram(string code, long size) {
     return memory[ EXIT_CODE_INDEX ];
 }
 
-int main() {
+int main(int argc, string *argv) {
+    if (argc != 2) {
+        printf("-- bit machine --\nruns (only parses for now) supplied bit file.\n");
+        printf("Usage:\n  %s <file_name>", argv[ 0 ]);
+        exit(0);
+    }
+
+    File *f = readFile(argv[ 1 ]);
+    if (f->size == 0 || f->content == NULL) exit(1);
+
+    string text = f->content;
+    u8     size = f->size;
+
     devNull         = fopen("/dev/null", "w");
-    byte code[ 13 ] = { 2, 2, // NAND
-
-                        1, 1, // LEFT const
-                        1, 2, // CONST = 1
-
-                        1, 1, // RIGHT const
-                        1, 1, // CONST = 0
-
-                        2, 1, // NOP
-                        0 };
-
-    runProgram(code, 12);
+    runProgram(text, size - 1);
 }

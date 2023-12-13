@@ -20,7 +20,7 @@ output: build
 comm: clean .git
 	git add .
 	@echo Enter a commit message:
-	@read com_msg && git commit -m "$com_msg"
+	@read com_msg && git commit -m "$com_msg" && echo "MESSAGE: $com_msg"
 
 push: comm clean
 	git push

@@ -21,4 +21,6 @@ comm: clean
 	git add .
 	read -p "Enter a commit message: " com_msg
 	git commit -m "$com_msg"
+
+push: comm clean
 	git push

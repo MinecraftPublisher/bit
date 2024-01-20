@@ -1,0 +1,79 @@
+%prefix "bit_asm"
+%value "char*"
+
+%header {
+    #include<stdio.h>
+    #define byte "00000000"
+    #define byte2 byte byte
+    #define byte4 byte2 byte2
+    #define byte8 byte4 byte4
+    #define byte16 byte8 byte8
+    #define byte32 byte16 byte16
+    #define byte64 byte32 byte32
+
+    #define fix(i) ({ int *__I__ = i; *__I__; })
+    #define print_reg(i) printf("    VAL IN REG r%c\n    10 ", registers[i]); print_bin(i); printf("\n")
+
+    void print_bin(int number) {
+        printf("%c" "%c " "%c" "%c" "%c" "%c " "%c" "%c" "%c" "%c " "%c" "%c" "%c" "%c", 
+            ((number & (1 << 13)) >> 13) + '0',
+            ((number & (1 << 12)) >> 12) + '0',
+            ((number & (1 << 11)) >> 11) + '0',
+            ((number & (1 << 10)) >> 10) + '0',
+            ((number & (1 << 9)) >> 9)   + '0',
+            ((number & (1 << 8)) >> 8)   + '0',
+            ((number & (1 << 7)) >> 7)   + '0',
+            ((number & (1 << 6)) >> 6)   + '0',
+            ((number & (1 << 5)) >> 5)   + '0',
+            ((number & (1 << 4)) >> 4)   + '0',
+            ((number & (1 << 3)) >> 3)   + '0',
+            ((number & (1 << 2)) >> 2)   + '0',
+            ((number & (1 << 1)) >> 2)   + '0',
+            (number & 1)                 + '0');
+    }
+
+    const char registers[16] = "ABCEDFGHIJKLMNOP";
+}
+
+main <- (_ instruction _)*
+instruction <-
+    (
+        (('halt' / 'hlt' / 'HALT' / 'HLT') { printf("HLT\n" byte8 "\n"); }) /
+        (('mov' / 'move' / 'MOV' / 'MOVE') { printf("MOV\n01\n"); } _ data _ ','? _ addr) /
+        (('jmp' / 'jump' / 'JMP' / 'JUMP') { printf("JMP\n10\n    CONDS\n    "); } _ '(' _ jmpcond { printf("\n"); } _ ')' _ ','? _ addr)
+    ) { printf("\n"); }
+
+jmpcond <- (jmpzero / ('' { printf("0"); })) _ 'or'* _ (jmpless / ('' { printf("0"); })) _ 'or'* _ (jmpmore / ('' { printf("0"); })) _
+jmpzero <- ('zero' / '0' / 'iszero' / 'ZERO' / 'ISZERO') { printf("1"); }
+jmpless <- ('negative' / 'less' / '-1' / '<' / 'NEGATIVE' / 'LESS') { printf("1"); }
+jmpmore <- ('positive' / 'more' / '1' / '>' / 'POSITIVE' / 'MORE') { printf("1"); }
+
+data <- addr / consts
+
+addr <- ('reg(' _ a:const _ ')' { if(atoi(a) > 16) { printf("CRITICAL ERROR: Register value more than 16."); } print_reg(atoi(a)); }) / 
+    ('r' a:reg_code { print_reg(a[0] - 'A'); }) /
+    ('mem(' _ a:const _ ')' { if(atoi(a) > 16) { printf("CRITICAL ERROR: Register value for memory address more than 16."); } printf("    MEM r%c\n    11 ", registers[atoi(a)]); print_bin(atoi(a)); printf("\n"); }) / 
+    ('m' a:reg_code { printf("    MEM r%c\n    11 ", a[0]); print_bin(a[0] - 'A'); printf("\n"); })
+reg_code <- [A-P] { $$ = $0; }
+consts <- ('0' { printf("    ZERO\n    00 00 0000 0000 0000\n"); }) /
+    (a:const { printf("    CONST\n    01 "); print_bin(atoi(a)); printf("\n"); })
+
+# 16384
+const <- [0-9]* { $$ = $0; }
+
+_ <- ('\n' / ' ' / '\t')*
+
+%%
+
+int main() {
+    printf(
+            "--------------------------------" "\n"
+            "|     BIT ASSEMBLER OUTPUT     |" "\n"
+            "| INTENDED TO BE RAN ON BIT VM |" "\n"
+            "--------------------------------" "\n\n");
+    bit_asm_context_t *ctx = bit_asm_create(NULL); // create context
+    bit_asm_parse(ctx, NULL); // parse stdin
+    bit_asm_destroy(ctx); // destroy context
+
+    return 0;
+}

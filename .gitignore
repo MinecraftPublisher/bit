@@ -2,8 +2,7 @@
 # file.s
 # bit interpreter + assembler build directory
 build/
-# output bit machine code file
-a.out
+out/
 # why is the assembler here
-asm
+basm
 bit

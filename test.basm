@@ -1,0 +1,4 @@
+mov rA, rB
+jump (less or more) rA
+
+halt

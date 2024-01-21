@@ -1,4 +1,4 @@
-mov rA, rB
-jump (less or more) rA
+mov 1, rA
+math add, rA, rA, rC
 
 halt

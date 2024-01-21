@@ -33,14 +33,22 @@
     }
 
     const char registers[16] = "ABCEDFGHIJKLMNOP";
+    const char *mathops[2] = { "ADD", "NAND" };
 }
 
 main <- (_ instruction _)*
 instruction <-
     (
         (('halt' / 'hlt' / 'HALT' / 'HLT') { printf("HLT\n" byte8 "\n"); }) /
-        (('mov' / 'move' / 'MOV' / 'MOVE') { printf("MOV\n01\n"); } _ data _ ','? _ addr) /
-        (('jmp' / 'jump' / 'JMP' / 'JUMP') { printf("JMP\n10\n    CONDS\n    "); } _ '(' _ jmpcond { printf("\n"); } _ ')' _ ','? _ addr)
+        (('mov' / 'move' / 'MOV' / 'MOVE') { printf("MOV\n01\n"); } _ data _ ','? _ addr 
+            { printf("    PADDING " byte2 byte "000000" "\n"); }) /
+        (('jmp' / 'jump' / 'JMP' / 'JUMP') { printf("JMP\n10\n    CONDS\n    "); } _ '(' _ jmpcond { printf("\n"); } _ ')' _ ','? _ addr
+            { printf("    PADDING " byte2 byte2 byte "000" "\n"); }) /
+        (('math' / 'mth' / 'MATH' / 'MTH') { printf("MATH\n11\n    OP "); } _ (
+                (('+' / 'add' / 'ADD' / '0') { printf("ADD 0\n"); }) /
+                (('~' / '!' / 'nand' / 'NAND' / '1') { printf("NAND 1\n"); })
+            ) _ data _ ','? _ data _ ','? _ addr
+            { printf("    PADDING " byte "00000" "\n"); })
     ) { printf("\n"); }
 
 jmpcond <- (jmpzero / ('' { printf("0"); })) _ 'or'* _ (jmpless / ('' { printf("0"); })) _ 'or'* _ (jmpmore / ('' { printf("0"); })) _

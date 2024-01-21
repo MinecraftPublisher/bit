@@ -4,7 +4,6 @@
 
 typedef char byte;
 typedef byte bool;
-typedef char    *string;
 typedef uint64_t u64;
 
 #define QUOTE(...) #__VA_ARGS__
@@ -15,39 +14,7 @@ typedef uint64_t u64;
 
 byte memory[ MEMORY_SIZE ] = { [0 ... MEMORY_LAST] = 0 };
 
-const string MANUAL = QUOTE(\n\n\n\n\n\n\n\n\n
---------------------------------------------------------------------------------------------------------------------------------------------\n
-|`DEVICE`MANUAL````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|``````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|`REGISTERS:```````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|`rA,`rB,`rC,`...`rO,`rP``````````````````````````````````````16`registers`provided,`each`a`16-bit`unsigned`int,```````````````````````````|\n
-|`all`initialized`to`zero.`````````````````````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|``````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|`MEMORY:``````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|`16384kb`of`memory```````````````````````````````````````````0-based`indexing,`the`first`3072`kilobytes`are`dedicated`to`system`code.`````|\n
-|``````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|`ADDRESSING`MODES:````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|`00`ZERO`````````````````````````````````````````````````````Constant`value`zero``````````````````````````````````````````````````````````|\n
-|`01`CONSTANT`<constant>``````````````````````````````````````Constant`number.`````````````````````````````````````````````````````````````|\n
-|`10`REGISTER`<register>``````````````````````````````````````Value`taken`from`said`register.``````````````````````````````````````````````|\n
-|`11`MEMORY```<register>``````````````````````````````````````Value`from`memory`address`in`register.```````````````````````````````````````|\n
-|`data`is`just`addr`without`consts`or`zeros````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|``````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|`INSTRUCTIONS:````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|`00`HLT``````````````````````````````````````````````````````Stops`the`program`execution.`````````````````````````````````````````````````|\n
-|`01`MOV`<from:data>`<to:addr>````````````````````````````````Moves`data`between`regsiters,`Memory`addresses`and`constants.````````````````|\n
-|`10`JUMP`<on:`zero/less/more>`<to:adrr>``````````````````````Jumps`on`said`conditions`(or`gate)`to`said`address.``````````````````````````|\n
-|`11`MATH`<op:`+/N>`<left:data>`<right:data>`<dest:addr>``````Performs`math`on`two`numbers`and`puts`the`result`in`the`destination.`````````|\n
-|``````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|`ENCODING:````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|`Addressing`mode:`[2]`````````````````[14]````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|``````````````````^`address`mode``````^`value`{0`..`16384}````````````````````````````````````````````````````````````````````````````````|\n
-|``=`2`bytes```````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|`Instruction:`[2]`+``````````````[62]`````````````````````````````````````````````````````````````````````````````````````````````````````|\n
-|``````````````^`instruction``````^`data```````````````````````````````````````````````````````````````````````````````````````````````````|\n
---------------------------------------------------------------------------------------------------------------------------------------------\n
-\n\n\n\n\n\n\n\n\n
-);
+#include "manual.h"
 
 typedef uint16_t addr;     // 2 mode, 14 value
 typedef u64      instruct; // 2 instruct + 62 data
@@ -74,7 +41,7 @@ uint16_t REGISTERS[ 16 ];
 uint16_t PC   = 0;
 uint16_t LAST = 0;
 
-void printBits(size_t const size, void const *const ptr) {
+void printBits(size_t const size, void const *const ptr, bool nonewline) {
     unsigned char *b = (unsigned char *) ptr;
     unsigned char  byte;
     int            i, j;
@@ -85,7 +52,8 @@ void printBits(size_t const size, void const *const ptr) {
             printf("%u", byte);
         }
     }
-    puts("");
+
+    if (!nonewline) printf("\n");
 }
 
 // get address mode
@@ -147,12 +115,11 @@ bool parse_inst(instruct inst) {
             switch (op) {
                 case 0:
                     // add
-                    output = left + right;
-                    output &= 0b0011111111111111;
+                    output = (left & 0b0011111111111111) + (right & 0b0011111111111111);
                     break;
                 case 1:
                     // nand
-                    output = ~(left & right);
+                    output = ~((left & 0b0011111111111111) & (right & 0b0011111111111111));
                     output &= 0b0011111111111111;
                     break;
             }
@@ -165,7 +132,7 @@ bool parse_inst(instruct inst) {
                 case A_CONSTANT:
                 case A_ZERO:
                     printf("Cannot assign math destination to constant or zero on instruction:\n");
-                    // printBits(8, &inst);
+                    printBits(8, &inst, 0);
                     printf("%02llx\n", inst);
                     printf("Program counter: %hu\n", PC);
                     exit(EXIT_FAILURE);
@@ -202,7 +169,7 @@ bool parse_inst(instruct inst) {
                 case A_CONSTANT:
                 case A_ZERO:
                     printf("Cannot assign mov target to constant or zero on instruction:\n");
-                    printBits(8, &inst);
+                    printBits(8, &inst, 0);
                     printf("Program counter: %hu\n", PC);
                     exit(EXIT_FAILURE);
                 case A_MEMORY: memory[ REGISTERS[ to & 0b0011111111111111 ] ] = from; break;
@@ -347,6 +314,7 @@ end:;
     string regs = "ABCDEFGHIJKLMNOP";
     for (int i = 0; i < 16; i++) {
         printf("r%c: ", regs[ i ]);
-        printBits(2, &REGISTERS[ i ]);
+        printBits(2, &REGISTERS[ i ], 1);
+        printf(", %i\n", REGISTERS[ i ]);
     }
 }

@@ -1,3 +1,5 @@
+#include "basm_helper.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,10 +59,11 @@ void printBits(size_t const size, void const *const ptr, bool nonewline) {
 }
 
 // get address mode
-enum ADDR_MODE { A_ZERO, A_CONSTANT, A_REGISTER, A_MEMORY };
+enum ADDR_MODE { A_CONSTANT = 2, A_CONSTANT_2 = 3, A_REGISTER = 1, A_MEMORY = 0 };
 enum ADDR_MODE getmode(addr add) {
     byte left  = (add & 0b1000000000000000) >> 15;
     byte right = (add & 0b0100000000000000) >> 14;
+    
     return left + left + right;
 }
 
@@ -68,8 +71,8 @@ enum ADDR_MODE getmode(addr add) {
 uint16_t parse_arg(addr address) {
     enum ADDR_MODE mode = getmode(address);
     switch (mode) {
-        case A_ZERO: return 0;
-        case A_CONSTANT: return address & 0b0011111111111111;
+        case A_CONSTANT:
+        case A_CONSTANT_2: return address & 0b0111111111111111;
         case A_REGISTER: return REGISTERS[ address & 0b0011111111111111 ];
         case A_MEMORY: return memory[ REGISTERS[ address & 0b0011111111111111 ] ];
     }
@@ -130,8 +133,8 @@ bool parse_inst(instruct inst) {
             enum ADDR_MODE mode = getmode(dest);
             switch (mode) {
                 case A_CONSTANT:
-                case A_ZERO:
-                    printf("Cannot assign math destination to constant or zero on instruction:\n");
+                case A_CONSTANT_2:
+                    printf("Cannot assign math destination to constant on instruction:\n");
                     printBits(8, &inst, 0);
                     printf("%02llx\n", inst);
                     printf("Program counter: %hu\n", PC);
@@ -167,8 +170,8 @@ bool parse_inst(instruct inst) {
             enum ADDR_MODE mode = getmode(to);
             switch (mode) {
                 case A_CONSTANT:
-                case A_ZERO:
-                    printf("Cannot assign mov target to constant or zero on instruction:\n");
+                case A_CONSTANT_2:
+                    printf("Cannot assign mov target to constant on instruction:\n");
                     printBits(8, &inst, 0);
                     printf("Program counter: %hu\n", PC);
                     exit(EXIT_FAILURE);
@@ -181,14 +184,6 @@ bool parse_inst(instruct inst) {
 
     return 1;
 }
-
-void memoryfailure(string __FILE, int __LINE) {
-    printf("Memory failure %s %i\n", __FILE, __LINE);
-    exit(EXIT_FAILURE);
-}
-
-#define sanity(x)                                                                                  \
-    if (x == NULL) memoryfailure(__FILE__, __LINE__)
 
 union convert_byte8_to_u64 {
     byte bytes[ 8 ];

@@ -1,5 +1,5 @@
-# invert zero, gives all 1s
-math nand zero, zero, rB
+macro test(hi)
+    mov hi, rA
+end test
 
-# halt the program
-HLT
+@test($1)

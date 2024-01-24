@@ -1,3 +1,5 @@
 mov $1, rA
 math add rA, rA
 math add rA, rA
+
+halt

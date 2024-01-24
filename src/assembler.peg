@@ -46,7 +46,8 @@ instruction <-
             { printf("    PADDING " "0" "\n"); })
     ) ';'? { printf("\n"); }
 
-jmpcond <- (jmpzero / ('' { printf("0"); })) _ 'or'* _ (jmpless / ('' { printf("0"); })) _ 'or'* _ (jmpmore / ('' { printf("0"); })) _
+# ------------------------------------------- JUMP CONDITIONS -------------------------------------------
+jmpcond <- (jmpzero / ('' { printf("0"); })) _ 'or'? _ (jmpless / ('' { printf("0"); })) _ 'or'? _ (jmpmore / ('' { printf("0"); })) _
 jmpzero <- ('zero' / '0' / 'iszero' / 'ZERO' / 'ISZERO') { printf("1"); }
 jmpless <- ('negative' / 'less' / '-1' / '<' / 'NEGATIVE' / 'LESS') { printf("1"); }
 jmpmore <- ('positive' / 'more' / '1' / '>' / 'POSITIVE' / 'MORE') { printf("1"); }

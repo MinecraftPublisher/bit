@@ -1,5 +1,4 @@
 #include "basm_helper.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,8 +9,8 @@ typedef uint64_t u64;
 
 #define QUOTE(...) #__VA_ARGS__
 
-#define SYSTEM_CODE 2048 + 1024
-#define MEMORY_SIZE SYSTEM_CODE + 13312
+#define SYSTEM_CODE 16384
+#define MEMORY_SIZE SYSTEM_CODE + 114688
 #define MEMORY_LAST MEMORY_SIZE - 1
 
 byte memory[ MEMORY_SIZE ] = { [0 ... MEMORY_LAST] = 0 };
@@ -63,7 +62,7 @@ enum ADDR_MODE { A_CONSTANT = 2, A_CONSTANT_2 = 3, A_REGISTER = 1, A_MEMORY = 0 
 enum ADDR_MODE getmode(addr add) {
     byte left  = (add & 0b100000000000000000000000000000) >> 29;
     byte right = (add & 0b010000000000000000000000000000) >> 28;
-    
+
     return left + left + right;
 }
 
@@ -71,10 +70,10 @@ enum ADDR_MODE getmode(addr add) {
 uint16_t parse_arg(addr address) {
     enum ADDR_MODE mode = getmode(address);
     switch (mode) {
-        case A_CONSTANT: // 10 - 2
+        case A_CONSTANT:   // 10 - 2
         case A_CONSTANT_2: // 11 - 3
             return address & 0b011111111111111111111111111111;
-        case A_REGISTER: //01 - 1
+        case A_REGISTER: // 01 - 1
             return REGISTERS[ address & 0b001111111111111111111111111111 ];
         case A_MEMORY: // 00 - 0
             return memory[ REGISTERS[ address & 0b001111111111111111111111111111 ] ];
@@ -84,8 +83,8 @@ uint16_t parse_arg(addr address) {
 // get instruction mode
 enum INST_MODE { I_HLT, I_MOV, I_JMP, I_MATH };
 enum INST_MODE getinst(instruct add) {
-    byte left  = (add & ((uint64_t)1 << 63)) >> 63;
-    byte right = (add & ((uint64_t)1 << 62)) >> 62;
+    byte left  = (add & ((uint64_t) 1 << 63)) >> 63;
+    byte right = (add & ((uint64_t) 1 << 62)) >> 62;
 
     return left + left + right;
 }
@@ -114,8 +113,9 @@ bool parse_inst(instruct inst) {
             short op = (inst & ((u64) 1 << 61)) >> 61;
 
             uint16_t output;
-            uint32_t left_raw = (inst & 0b0001111111111111111111111111111110000000000000000000000000000000) >> 31;
-            uint16_t left = parse_arg(left_raw);
+            uint32_t left_raw
+                = (inst & 0b0001111111111111111111111111111110000000000000000000000000000000) >> 31;
+            uint16_t left  = parse_arg(left_raw);
             uint16_t right = parse_arg(
                 (inst & 0b0000000000000000000000000000000001111111111111111111111111111110) >> 1);
 
@@ -131,6 +131,8 @@ bool parse_inst(instruct inst) {
                     break;
             }
 
+            LAST = output;
+
             enum ADDR_MODE mode = getmode(left_raw);
             switch (mode) {
                 case A_CONSTANT:
@@ -140,8 +142,12 @@ bool parse_inst(instruct inst) {
                     printf("%02llx\n", inst);
                     printf("Program counter: %llu\n", PC);
                     exit(EXIT_FAILURE);
-                case A_MEMORY: memory[ REGISTERS[ left_raw & 0b001111111111111111111111111111 ] ] = output; break;
-                case A_REGISTER: REGISTERS[ left_raw & 0b001111111111111111111111111111 ] = output; break;
+                case A_MEMORY:
+                    memory[ REGISTERS[ left_raw & 0b001111111111111111111111111111 ] ] = output;
+                    break;
+                case A_REGISTER:
+                    REGISTERS[ left_raw & 0b001111111111111111111111111111 ] = output;
+                    break;
             }
             break;
         }
@@ -161,9 +167,12 @@ bool parse_inst(instruct inst) {
             break;
         }
         case I_MOV: {
-            uint16_t from
-                = parse_arg((inst & 0b0011111111111111111111111111111100000000000000000000000000000000) >> 32);
-            u64 to =                 (inst & 0b0000000000000000000000000000000011111111111111111111111111111100) >> 2;
+            uint16_t from = parse_arg(
+                (inst & 0b0011111111111111111111111111111100000000000000000000000000000000) >> 32);
+            u64 to
+                = (inst & 0b0000000000000000000000000000000011111111111111111111111111111100) >> 2;
+
+            LAST = from;
 
             enum ADDR_MODE mode = getmode(to);
             switch (mode) {

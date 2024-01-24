@@ -16,5 +16,5 @@ run: assembler vm
 	clear
 	@endsuccess "anykey 'Press any key to run...'"
 	clear
-	@cat test.basm | ./build/basm | fold -w 32
+	@cat test.basm | ./build/basm | fold -w 64
 	@cat test.basm | ./build/basm > ./out/out.bit

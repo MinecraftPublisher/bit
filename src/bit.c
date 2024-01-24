@@ -18,7 +18,7 @@ byte memory[ MEMORY_SIZE ] = { [0 ... MEMORY_LAST] = 0 };
 
 #include "manual.h"
 
-typedef uint16_t addr;     // 2 mode, 14 value
+typedef uint32_t addr;     // 1.6 mode, 28.3 value
 typedef u64      instruct; // 2 instruct + 62 data
 
 // define registers
@@ -39,9 +39,9 @@ typedef u64      instruct; // 2 instruct + 62 data
 #define rO REGISTERS[ 14 ]
 #define rP REGISTERS[ 15 ]
 
-uint16_t REGISTERS[ 16 ];
-uint16_t PC   = 0;
-uint16_t LAST = 0;
+uint32_t REGISTERS[ 16 ];
+uint64_t PC   = 0;
+uint64_t LAST = 0;
 
 void printBits(size_t const size, void const *const ptr, bool nonewline) {
     unsigned char *b = (unsigned char *) ptr;
@@ -61,8 +61,8 @@ void printBits(size_t const size, void const *const ptr, bool nonewline) {
 // get address mode
 enum ADDR_MODE { A_CONSTANT = 2, A_CONSTANT_2 = 3, A_REGISTER = 1, A_MEMORY = 0 };
 enum ADDR_MODE getmode(addr add) {
-    byte left  = (add & 0b1000000000000000) >> 15;
-    byte right = (add & 0b0100000000000000) >> 14;
+    byte left  = (add & 0b100000000000000000000000000000) >> 29;
+    byte right = (add & 0b010000000000000000000000000000) >> 28;
     
     return left + left + right;
 }
@@ -71,18 +71,22 @@ enum ADDR_MODE getmode(addr add) {
 uint16_t parse_arg(addr address) {
     enum ADDR_MODE mode = getmode(address);
     switch (mode) {
-        case A_CONSTANT:
-        case A_CONSTANT_2: return address & 0b0111111111111111;
-        case A_REGISTER: return REGISTERS[ address & 0b0011111111111111 ];
-        case A_MEMORY: return memory[ REGISTERS[ address & 0b0011111111111111 ] ];
+        case A_CONSTANT: // 10 - 2
+        case A_CONSTANT_2: // 11 - 3
+            return address & 0b011111111111111111111111111111;
+        case A_REGISTER: //01 - 1
+            return REGISTERS[ address & 0b001111111111111111111111111111 ];
+        case A_MEMORY: // 00 - 0
+            return memory[ REGISTERS[ address & 0b001111111111111111111111111111 ] ];
     }
 }
 
 // get instruction mode
 enum INST_MODE { I_HLT, I_MOV, I_JMP, I_MATH };
 enum INST_MODE getinst(instruct add) {
-    byte left  = (add & 0b1000000000000000000000000000000000000000000000000000000000000000) >> 63;
-    byte right = (add & 0b0100000000000000000000000000000000000000000000000000000000000000) >> 62;
+    byte left  = (add & ((uint64_t)1 << 63)) >> 63;
+    byte right = (add & ((uint64_t)1 << 62)) >> 62;
+
     return left + left + right;
 }
 
@@ -110,37 +114,34 @@ bool parse_inst(instruct inst) {
             short op = (inst & ((u64) 1 << 61)) >> 61;
 
             uint16_t output;
-            uint16_t left = parse_arg(
-                (inst & 0b0001111111111111111000000000000000000000000000000000000000000000) >> 45);
+            uint32_t left_raw = (inst & 0b0001111111111111111111111111111110000000000000000000000000000000) >> 31;
+            uint16_t left = parse_arg(left_raw);
             uint16_t right = parse_arg(
-                (inst & 0b0000000000000000000111111111111111100000000000000000000000000000) >> 29);
+                (inst & 0b0000000000000000000000000000000001111111111111111111111111111110) >> 1);
 
             switch (op) {
                 case 0:
                     // add
-                    output = (left & 0b0011111111111111) + (right & 0b0011111111111111);
+                    output = left + right;
                     break;
                 case 1:
                     // nand
-                    output = ~((left & 0b0011111111111111) & (right & 0b0011111111111111));
-                    output &= 0b0011111111111111;
+                    output = ~(left & right);
+                    // output &= 0b0011111111111111;
                     break;
             }
 
-            uint16_t dest
-                = (inst & 0b0000000000000000000000000000000000011111111111111110000000000000) >> 13;
-
-            enum ADDR_MODE mode = getmode(dest);
+            enum ADDR_MODE mode = getmode(left_raw);
             switch (mode) {
                 case A_CONSTANT:
                 case A_CONSTANT_2:
                     printf("Cannot assign math destination to constant on instruction:\n");
                     printBits(8, &inst, 0);
                     printf("%02llx\n", inst);
-                    printf("Program counter: %hu\n", PC);
+                    printf("Program counter: %llu\n", PC);
                     exit(EXIT_FAILURE);
-                case A_MEMORY: memory[ REGISTERS[ dest & 0b0011111111111111 ] ] = output; break;
-                case A_REGISTER: REGISTERS[ dest & 0b0011111111111111 ] = output; break;
+                case A_MEMORY: memory[ REGISTERS[ left_raw & 0b001111111111111111111111111111 ] ] = output; break;
+                case A_REGISTER: REGISTERS[ left_raw & 0b001111111111111111111111111111 ] = output; break;
             }
             break;
         }
@@ -149,7 +150,7 @@ bool parse_inst(instruct inst) {
             short    less = (inst & ((u64) 1 << 60)) >> 60;
             short    more = (inst & ((u64) 1 << 59)) >> 59;
             uint16_t dest
-                = (inst & 0b0000011111111111111110000000000000000000000000000000000000000000) >> 43;
+                = (inst & 0b0000011111111111111111111111111111100000000000000000000000000000) >> 29;
 
             if (zero && LAST == 0) PC = dest;
             else if (less && (int16_t) LAST < 0)
@@ -161,19 +162,16 @@ bool parse_inst(instruct inst) {
         }
         case I_MOV: {
             uint16_t from
-                = parse_arg(
-                      (inst & 0b0011111111111111110000000000000000000000000000000000000000000000)
-                      >> 46)
-                  & 0b0011111111111111;
-            u64 to
-                = (inst & 0b0000000000000000001111111111111111000000000000000000000000000000) >> 30;
+                = parse_arg((inst & 0b0011111111111111111111111111111100000000000000000000000000000000) >> 32);
+            u64 to =                 (inst & 0b0000000000000000000000000000000011111111111111111111111111111100) >> 2;
+
             enum ADDR_MODE mode = getmode(to);
             switch (mode) {
                 case A_CONSTANT:
                 case A_CONSTANT_2:
                     printf("Cannot assign mov target to constant on instruction:\n");
                     printBits(8, &inst, 0);
-                    printf("Program counter: %hu\n", PC);
+                    printf("Program counter: %llu\n", PC);
                     exit(EXIT_FAILURE);
                 case A_MEMORY: memory[ REGISTERS[ to & 0b0011111111111111 ] ] = from; break;
                 case A_REGISTER: REGISTERS[ to & 0b0011111111111111 ] = from; break;

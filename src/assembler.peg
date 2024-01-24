@@ -33,17 +33,17 @@ instruction <-
             { printf("HLT\n" byte8 "\n"); }) /
         (('mov' / 'move' / 'MOV' / 'MOVE') 
             { printf("MOV\n01\n"); } _ data _ ','? _ addr 
-            { printf("    PADDING " byte2 byte "000000" "\n"); }) /
+            { printf("    PADDING " "00" "\n"); }) /
         (('jmp' / 'jump' / 'JMP' / 'JUMP') 
             { printf("JMP\n10\n    CONDS\n    "); } 
             _ '(' _ jmpcond { printf("\n"); } _ ')' _ ','? _ addr
-            { printf("    PADDING " byte2 byte2 byte "000" "\n"); }) /
+            { printf("    PADDING " byte2 byte "00000" "\n"); }) /
         (('math' / 'mth' / 'MATH' / 'MTH') 
             { printf("MATH\n11\n    OP "); } _ (
                 (('+' / 'add' / 'ADD' / '0') { printf("ADD 0\n"); }) /
                 (('~' / '!' / 'nand' / 'NAND' / '1') { printf("NAND 1\n"); })
-            ) _ ','? _ data _ ','? _ data _ ','? _ addr
-            { printf("    PADDING " byte "00000" "\n"); })
+            ) _ ','? _ addr _ ','? _ data                                             # MATH SUPPORT DROPPED FOR 3 PARAMETERS
+            { printf("    PADDING " "0" "\n"); })
     ) ';'? { printf("\n"); }
 
 jmpcond <- (jmpzero / ('' { printf("0"); })) _ 'or'* _ (jmpless / ('' { printf("0"); })) _ 'or'* _ (jmpmore / ('' { printf("0"); })) _
@@ -71,7 +71,7 @@ _ <- ('\n' / ' ' / '\t')*
 int main(int argc, string *argv) {
     current_path = argv[0];
 
-    if(argc == 2 && argv[1] == 'nostart') printf(
+    if(argc != 2 || strcmp(argv[1], "nostart")) printf(
             "--------------------------------" "\n"
             "|     BIT ASSEMBLER OUTPUT     |" "\n"
             "| INTENDED TO BE RAN ON BIT VM |" "\n"

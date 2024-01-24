@@ -26,9 +26,9 @@ void               bit_asm_destroy(bit_asm_context_t *ctx);
 
 void run_code(string code) {
     if (code != NULL) {
-        string cmd = malloc(strlen(current_path) + strlen(code) + 50);
+        string cmd = malloc(strlen(current_path) + strlen(code) + 200);
         sanity(cmd);
-        sprintf(cmd, "echo '%s' | %s", code, current_path);
+        sprintf(cmd, "echo '%s' | %s nostart", code, current_path);
 
         FILE *pipe = popen(cmd, "r");
         if (!pipe) {
@@ -50,9 +50,9 @@ void run_code(string code) {
 
 void run_expr(string code) {
     if (code != NULL) {
-        string cmd = malloc(strlen(current_path) + strlen(code) + 100);
+        string cmd = malloc(strlen(current_path) + strlen(code) + 200);
         sanity(cmd);
-        sprintf(cmd, "echo '##EXPRONLY\n%s' | %s", code, current_path);
+        sprintf(cmd, "echo '##EXPRONLY\n%s' | %s nostart", code, current_path);
 
         FILE *pipe = popen(cmd, "r");
         if (!pipe) {
@@ -75,40 +75,18 @@ void run_expr(string code) {
 const char  registers[ 16 ] = "ABCEDFGHIJKLMNOP";
 const char *mathops[ 2 ]    = { "ADD", "NAND" };
 
-void print_bin(int number, int isfifteen) {
-    if (isfifteen) printf("%c", (((number & (1 << 14)) >> 14) + '0'));
-    printf(
-        "%c"
-        "%c "
-        "%c"
-        "%c"
-        "%c"
-        "%c "
-        "%c"
-        "%c"
-        "%c"
-        "%c "
-        "%c"
-        "%c"
-        "%c"
-        "%c",
-        ((number & (1 << 13)) >> 13) + '0',
-        ((number & (1 << 12)) >> 12) + '0',
-        ((number & (1 << 11)) >> 11) + '0',
-        ((number & (1 << 10)) >> 10) + '0',
-        ((number & (1 << 9)) >> 9) + '0',
-        ((number & (1 << 8)) >> 8) + '0',
-        ((number & (1 << 7)) >> 7) + '0',
-        ((number & (1 << 6)) >> 6) + '0',
-        ((number & (1 << 5)) >> 5) + '0',
-        ((number & (1 << 4)) >> 4) + '0',
-        ((number & (1 << 3)) >> 3) + '0',
-        ((number & (1 << 2)) >> 2) + '0',
-        ((number & (1 << 1)) >> 2) + '0',
-        (number & 1) + '0');
+void print_bin(uint32_t number, int istwentynine) {
+    if (istwentynine) printf("%c", (((number & (1 << 14)) >> 14) + '0'));
+
+    for (int j = 0; j < 28; j++) {
+        printf("%c", ((number & (1 << (27 - j))) >> (27 - j)) + '0');
+        // if ((j % 4 == 0 && j != 0) || j == (1 - istwentynine)) printf(" ");
+    }
+
+    printf("\n");
 }
 
-void print_reg(int i) {
+void print_reg(uint32_t i) {
     printf("    VALUE IN REG r%c\n    01 ", registers[ i ]);
     print_bin(i, 0);
     printf("\n");
@@ -209,7 +187,8 @@ void run_macro(struct macro_define macro, string raw_inputs) {
     sanity(final);
     strcpy(final, macro.text);
 
-    for (size_t i = 0; i < macro.args->size; i++) final = replaceAll(final, macro.args->array[ i ], sane_inputs->array[ i ]);
+    for (size_t i = 0; i < macro.args->size; i++)
+        final = replaceAll(final, macro.args->array[ i ], sane_inputs->array[ i ]);
 
     run_code(final);
 }

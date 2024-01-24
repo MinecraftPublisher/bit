@@ -8,6 +8,11 @@ A simple, Turing-complete and easy to recreate CPU architecture.
 - If the input program size exceeds this limit, The virtual machine will throw an error.
 - A better I/O interface is not yet supported, But it soon will be in the form of magic addresses.
 
+### Addressing modes and types
+- `data`: Could be `addr` or `const`.
+- `addr`: Could be `rX` or `mX` to denote register or memory address.
+- `const`: Could be `$nnnnn` to denote a constant value.
+
 ### Instructions
 - `HLT`: Also known as `hlt`, `HALT` or `halt`, Will immediately stop the CPU process.
 - `MOV`: Also known as `mov`, `MOVE` or `move`, Will move a value to an address.

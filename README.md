@@ -21,13 +21,13 @@ A simple, Turing-complete and easy to recreate CPU architecture.
 
 #### HLT()
 Takes in no arguments. Halts CPU execution immediately.
-```asm
+```py
 hlt
 ```
 
 #### MOV(data SRC, addr DEST)
 Moves data from SRC to DEST.
-```c
+```py
 mov $1, rA        # moves the value `1` to the register rA.
                   # Same as `register[0] = 1;`
 mov $6, mA        # NOT RECOMMENDED - Moves the value 6 to the memory address pointed to by rA.
@@ -36,7 +36,7 @@ mov $6, mA        # NOT RECOMMENDED - Moves the value 6 to the memory address po
 
 #### MTH(bit op, addr LEFT, data RIGHT)
 Adds or nands the left side and the right side, And stores the data in the left side.
-```c
+```py
 mov $5, rA        # Set rA to 5
                   # Same as `register[0] = 5;`
 mth add rA, $1    # Set rA to 1 + rA
@@ -56,7 +56,7 @@ There are three flags which take up 3 bits, And can be mix and matched in this o
 1. Zero: Succeeds if the flag is set and `LAST == 0`.
 2. Less: Succeeds if the flag is set and `LAST < 0`.
 2. More: Succeeds if the flag is set and `LAST > 0`.
-```c
+```py
 # ... code here ...
 jmp (zero) rB         # Jump to address in rB if `LAST == 0`
 # ... code here ...

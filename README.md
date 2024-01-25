@@ -40,6 +40,7 @@ macro mov_mth(SRC, DEST)
     mth nand DEST, $0      # sets DEST to all 1s
     mth nand DEST, DEST    # inverts DEST, making ut all 0s
     mth add DEST, SRC      # adds SRC to DEST, Essentially `x + 0 = x`
+end mov_mth
 ```
 
 #### MTH(bit op, addr LEFT, data RIGHT)

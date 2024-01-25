@@ -22,6 +22,7 @@ const string MANUAL = QUOTE(\n\n\n\n\n\n\n\n\n
 |`00`HLT``````````````````````````````````````````````````````Stops`the`program`execution.`````````````````````````````````````````````````|\n
 |`01`MOV`<from:data>`<to:addr>````````````````````````````````Moves`data`between`regsiters,`Memory`addresses`and`constants.````````````````|\n
 |`10`JUMP`<on:`zero/less/more>`<to:adrr>``````````````````````Jumps`on`said`conditions`(or`gate)`to`said`address.``````````````````````````|\n
+|````````Last`set`on`from`in`MOV`and`output`in`MTH`````````````````````````````````````````````````````````````````````````````````````````|\n
 |`11`MATH`<op:`+/N>`<left:data>`<right:data>`<dest:addr>``````Performs`math`on`two`numbers`and`puts`the`result`in`the`destination.`````````|\n
 |``````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````|\n
 |`ENCODING:````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````|\n

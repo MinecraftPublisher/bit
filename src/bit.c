@@ -67,7 +67,7 @@ enum ADDR_MODE getmode(addr add) {
 }
 
 // parses address argument
-uint16_t parse_arg(addr address) {
+uint32_t parse_arg(addr address) {
     enum ADDR_MODE mode = getmode(address);
     switch (mode) {
         case A_CONSTANT:   // 10 - 2
@@ -115,8 +115,8 @@ bool parse_inst(instruct inst) {
             uint16_t output;
             uint32_t left_raw
                 = (inst & 0b0001111111111111111111111111111110000000000000000000000000000000) >> 31;
-            uint16_t left  = parse_arg(left_raw);
-            uint16_t right = parse_arg(
+            uint32_t left  = parse_arg(left_raw);
+            uint32_t right = parse_arg(
                 (inst & 0b0000000000000000000000000000000001111111111111111111111111111110) >> 1);
 
             switch (op) {
@@ -167,7 +167,7 @@ bool parse_inst(instruct inst) {
             break;
         }
         case I_MOV: {
-            uint16_t from = parse_arg(
+            uint32_t from = parse_arg(
                 (inst & 0b0011111111111111111111111111111100000000000000000000000000000000) >> 32);
             u64 to
                 = (inst & 0b0000000000000000000000000000000011111111111111111111111111111100) >> 2;

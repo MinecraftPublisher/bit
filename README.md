@@ -48,6 +48,23 @@ mth nand rA, rA           # Inverts rA.
 #### JMP(__flags__ flags, addr DEST)
 Jumps to a said address (moves the Program Counter) if certain conditions are met.
 
+##### Mechanics
+- The jump instruction relies on a special register called `LAST`. This register cannot be accessed or modified directly from the program.
+- The way that `LAST` is set varies based on instructions.
+- `LAST` is set by the SRC in **MOV**, The output in **MTH** and doesn't change on **HLT** and **JMP**.
+There are three flags which take up 3 bits, And can be mix and matched in this order:
+1. Zero: Succeeds if the flag is set and `LAST == 0`.
+2. Less: Succeeds if the flag is set and `LAST < 0`.
+2. More: Succeeds if the flag is set and `LAST > 0`.
+```py
+# ... code here ...
+jmp (zero) rB         # Jump to address in rB if `LAST == 0`
+# ... code here ...
+jmp (less or more) rB # Jump to address in rB if `LAST != 0`
+# ... code here ...
+jmp (0 -1), rB        # Jump to address in rB if `LAST <= 0`
+```
+
 ### Macros
 Bit assembler macros have two types: Function-like macros and Constants.
 
@@ -82,23 +99,6 @@ macro init_stack()
 end init_stack
 
 @init_stack() # put input arguments if any inside the ().
-```
-
-##### Mechanics
-- The jump instruction relies on a special register called `LAST`. This register cannot be accessed or modified directly from the program.
-- The way that `LAST` is set varies based on instructions.
-- `LAST` is set by the SRC in **MOV**, The output in **MTH** and doesn't change on **HLT** and **JMP**.
-There are three flags which take up 3 bits, And can be mix and matched in this order:
-1. Zero: Succeeds if the flag is set and `LAST == 0`.
-2. Less: Succeeds if the flag is set and `LAST < 0`.
-2. More: Succeeds if the flag is set and `LAST > 0`.
-```py
-# ... code here ...
-jmp (zero) rB         # Jump to address in rB if `LAST == 0`
-# ... code here ...
-jmp (less or more) rB # Jump to address in rB if `LAST != 0`
-# ... code here ...
-jmp (0 -1), rB        # Jump to address in rB if `LAST <= 0`
 ```
 
 ## CPU emulator usage guide

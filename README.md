@@ -28,25 +28,61 @@ hlt
 #### MOV(data SRC, addr DEST)
 Moves data from SRC to DEST.
 ```py
-mov $1, rA        # moves the value `1` to the register rA.
-                  # Same as `register[0] = 1;`
-mov $6, mA        # NOT RECOMMENDED - Moves the value 6 to the memory address pointed to by rA.
-                  # Same as `memory[register[0]] = 6;`
+mov $1, rA                # moves the value `1` to the register rA.
+                          # Same as `register[0] = 1;`
+mov $6, mA                # NOT RECOMMENDED - Moves the value 6 to the memory address pointed to by rA.
+                          # Same as `memory[register[0]] = 6;`
 ```
 
 #### MTH(bit op, addr LEFT, data RIGHT)
 Adds or nands the left side and the right side, And stores the data in the left side.
 ```py
-mov $5, rA        # Set rA to 5
-                  # Same as `register[0] = 5;`
-mth add rA, $1    # Set rA to 1 + rA
-                  # Same as `register[0] = register[0] + 1;`
-mth nand rA, rA   # Inverts rA.
-                  # Same as `register[0] = ~(register[0]);` or `register[0] = ~(register[0] & register[0]);`
+mov $5, rA                # Set rA to 5
+                          # Same as `register[0] = 5;`
+mth add rA, $1            # Set rA to 1 + rA
+                          # Same as `register[0] = register[0] + 1;`
+mth nand rA, rA           # Inverts rA.
+                          # Same as `register[0] = ~(register[0]);` or `register[0] = ~(register[0] & register[0]);`
 ```
 
 #### JMP(__flags__ flags, addr DEST)
 Jumps to a said address (moves the Program Counter) if certain conditions are met.
+
+### Macros
+Bit assembler macros have two types: Function-like macros and Constants.
+
+#### Constants
+Constants are defined like this:
+```py
+define NAME { TEXT }      # Defines a macro with the name `NAME` with content being `TEXT`
+```
+To use constant, You need to strictly be inside of an instruction. You cannot call constants from outside instruction parameters:
+```py
+define SP { $17000 }      # Define a constant named (S)tack (P)ointer with the value being a constant 17000.
+mov !SP, rA               # Move 17000 to the rA register.
+mov $5, mA                # Move 5 to memory[17000].
+```
+
+**CAUTION**: You CANNOT use other constants inside a constant. Constants and other macros do not share a database.
+
+#### Function-like macros
+Function-like macros are defined like this:
+```py
+macro NAME(ARG1, ARG2) # Args HAVE TO BE comma-separated.
+    # ... code ...
+end NAME
+```
+
+And called like this:
+```py
+macro init_stack()
+    define SP { $17000 }
+    mov !SP, rA
+    mov $5, mA
+end init_stack
+
+@init_stack() # put input arguments if any inside the ().
+```
 
 ##### Mechanics
 - The jump instruction relies on a special register called `LAST`. This register cannot be accessed or modified directly from the program.

@@ -1,5 +1,7 @@
-mov $1, rA
-math add rA, rA
-math add rA, rA
+macro init_stack()
+    define SP { $17000 }
+    mov !SP, rA
+    mov $5, mA
+end init_stack
 
-halt
+@init_stack()

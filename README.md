@@ -34,6 +34,13 @@ mov $6, mA                # NOT RECOMMENDED - Moves the value 6 to the memory ad
                           # Same as `memory[register[0]] = 6;`
 ```
 
+##### Trivia: The MOV instruction could be recreated with just MTH!
+```py
+macro mov_mth(SRC, DEST)
+    mth nand DEST, $0      # sets DEST to all 1s
+    mth nand DEST, DEST    # inverts DEST, making ut all 0s
+    mth add DEST, SRC      # adds SRC to DEST, Essentially `x + 0 = x`
+
 #### MTH(bit op, addr LEFT, data RIGHT)
 Adds or nands the left side and the right side, And stores the data in the left side.
 ```py

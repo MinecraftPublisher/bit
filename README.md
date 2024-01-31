@@ -77,7 +77,9 @@ jmp (0 -1), rB        # Jump to address in rB if `LAST <= 0`
 ### Macros
 Bit assembler macros have two types: Function-like macros and Constants.
 
-#### Constants
+**v2 only**: Function-like macros and constants are globally accessible, But they do not behave this way in v1.
+
+#### Constants (v1 only)
 Constants are defined like this:
 ```py
 define NAME { TEXT }      # Defines a macro with the name `NAME` with content being `TEXT`
@@ -90,6 +92,18 @@ mov $5, mA                # Move 5 to memory[17000].
 ```
 
 **CAUTION**: You CANNOT use other constants inside a constant. Constants and other macros do not share a database.
+
+#### Constants (v2 only)
+Constants are defined like this:
+```py
+define NAME EXPR      # Defines a macro with the name `NAME` with content being `TEXT`
+```
+To use constant, You need to strictly be inside of an instruction. You cannot call constants from outside instruction parameters:
+```py
+define SP $17000          # Define a constant named (S)tack (P)ointer with the value being a constant 17000.
+mov !SP, rA               # Move 17000 to the rA register.
+mov $5, mA                # Move 5 to memory[17000].
+```
 
 #### Function-like macros
 Function-like macros are defined like this:

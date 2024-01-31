@@ -18,7 +18,7 @@ compile this aswell and put it in optionally the same folder or another $PATH-in
 #include <stdlib.h>
 
 int main(int argc, char **argv) {
-    if(argc != 2) exit(EXIT_FAILURE);
+    if(argc != 2) return 0;
     system(argv[1]);
     return 0;
 }

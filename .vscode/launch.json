@@ -5,6 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch Program",
+            "program": "${workspaceFolder}/src/assembler.mjs",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
             "type": "lldb",
             "request": "launch",
             "name": "Debug",

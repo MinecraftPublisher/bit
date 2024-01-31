@@ -175,6 +175,7 @@ bool parse_inst(instruct inst) {
             LAST = from;
 
             enum ADDR_MODE mode = getmode(to);
+            printf("CONST: %u\n", from);
             switch (mode) {
                 case A_CONSTANT:
                 case A_CONSTANT_2:
@@ -182,8 +183,8 @@ bool parse_inst(instruct inst) {
                     printBits(8, &inst, 0);
                     printf("Program counter: %llu\n", PC);
                     exit(EXIT_FAILURE);
-                case A_MEMORY: memory[ REGISTERS[ to & 0b0011111111111111 ] ] = from; break;
-                case A_REGISTER: REGISTERS[ to & 0b0011111111111111 ] = from; break;
+                case A_MEMORY: memory[ REGISTERS[ to & 0b001111111111111111111111111111 ] ] = from; break;
+                case A_REGISTER: REGISTERS[ to & 0b001111111111111111111111111111 ] = from; break;
             }
             break;
         }

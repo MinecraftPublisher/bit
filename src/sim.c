@@ -12,7 +12,7 @@ int main() {
             PADDING 0
     );
     
-    MEMORY[ 0 ] = 0b01001000;
+    MEMORY[ 0 ] = 0b01001000; // fill memory with `mov $1, rA`
     MEMORY[ 1 ] = 0b00000000;
     MEMORY[ 2 ] = 0b00000000;
     MEMORY[ 3 ] = 0b00000000;

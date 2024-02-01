@@ -12,12 +12,15 @@ assembler_v1: clean src/assembler_v1.peg src/basm_helper.h
 assembler: clean src/assembler.ts
 	bun build src/assembler.ts --compile --outfile build/basm
 
-vm: clean src/bit.c src/manual.h
-	clang src/bit.c -o build/bit -g
+vm: clean src/sim.c src/bit.h src/manual.h
+	clang src/sim.c -O0 -o build/sim -g
+
+release: vm
+	clang src/sim.c -o build/rsim -Oz
 
 run: assembler vm
 	clear
 	@endsuccess "anykey 'Press any key to run...'"
 	clear
 	@./build/basm test.basm | fold -w 64
-	@./build/basm test.basm --minify > ./out/out.bit
+	@./build/basm test.basm > ./out/out.bit

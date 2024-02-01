@@ -14,8 +14,7 @@ const global_functions: functable = {}
 const global_table: constable = {}
 
 function assemble(code: string, nostart = false, expronly = false): string {
-    console.log('got code: %s', code)
-    let binary = nostart ? '' : `------------------------\n| Bit assembler output |\n| v2                   |\n------------------------`
+    let binary = nostart ? '' : `------------------------\n| Bit assembler output |\n| v2                   |\n------------------------\n`
     let pointer = 0
 
     function skipWhitespace() {
@@ -251,7 +250,6 @@ function assemble(code: string, nostart = false, expronly = false): string {
                 code: macro_code
             }
         } else if (startsWith('@')) {
-            console.log('STARTED PUSH')
             skipWhitespace()
             let name = readName()
 
@@ -281,7 +279,7 @@ function assemble(code: string, nostart = false, expronly = false): string {
                 if(macro.args[i] != '') __code = __code.replace(new RegExp(macro.args[i], 'g'), macro_args[i])
 
             binary += indent(assemble(__code, true))
-            console.log('\n\n\n\n\n\n')
+            // console.log('\n\n\n\n\n\n')
         }
 
         else {

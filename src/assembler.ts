@@ -18,7 +18,7 @@ function assemble(code: string, nostart = false, expronly = false): string {
     let pointer = 0
 
     function skipWhitespace() {
-        if(!(code[pointer] == ' ' || code[pointer] == '\n' || code[pointer] == '\t')) return
+        if (!(code[pointer] == ' ' || code[pointer] == '\n' || code[pointer] == '\t')) return
         while (code[pointer] == ' ' || code[pointer] == '\n' || code[pointer] == '\t') {
             pointer++
         }
@@ -276,7 +276,7 @@ function assemble(code: string, nostart = false, expronly = false): string {
 
             let __code = macro.code
             for (let i = 0; i < macro.argcount; i++)
-                if(macro.args[i] != '') __code = __code.replace(new RegExp(macro.args[i], 'g'), macro_args[i])
+                if (macro.args[i] != '') __code = __code.replace(new RegExp(macro.args[i], 'g'), macro_args[i])
 
             binary += indent(assemble(__code, true))
             // console.log('\n\n\n\n\n\n')

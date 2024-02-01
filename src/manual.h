@@ -1,16 +1,16 @@
 #define QUOTE(...) #__VA_ARGS__
 
 typedef unsigned long long uint64_t;
-typedef long long int64_t;
+typedef long long          int64_t;
 
-typedef int64_t i64;
+typedef int64_t  i64;
 typedef uint64_t u64;
 
 #define reg u64
 
 typedef unsigned char byte;
 typedef byte bool;
-typedef byte bit;
+typedef byte  bit;
 typedef char *string;
 
 extern int printf(const char *, ...);
@@ -26,4 +26,4 @@ List of error codes:\n
 5 = Register write OOB\n
 
 \n\n\n\n
-);
+);;

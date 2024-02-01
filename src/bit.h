@@ -39,19 +39,21 @@ struct INSTRUCTION {
 
 i64 parsearg(i64 arg) {
     short number = MODE == 2 ? // 64
-        28 : MODE == 1 ? //32
-        12 : 4;
-    i64 type = (arg & ((u64) 0b11 << number)) >> number;
-    i64 x    = (arg & ~((u64) 0b11 << number)) >> number;
+                       28
+                             : MODE == 1 ? // 32
+                                   12
+                                         : 4;
+    i64   type   = (arg & ((u64) 0b11 << number)) >> number;
+    i64   x      = (arg & ~((u64) 0b11 << number)) >> number;
 
     switch (type) {
         case 0b10:; // constant
         case 0b11:; // constant
             return (arg & ~((u64) 0b1 << (number + 1)));
-        case 0b01:;                 // register
+        case 0b01:;               // register
             if (x > 16) return 0; // silent cpu
             return REGISTERS[ x ];
-        case 0b00:;                 // memory addr
+        case 0b00:;               // memory addr
             if (x > 16) return 0; // silent cpu
             i64 memaddr = REGISTERS[ x ];
             if (memaddr > MEM_SIZE) return 0; // silent cpu
@@ -63,37 +65,40 @@ i64 parsearg(i64 arg) {
 
 void writearg(i64 location, i64 data) {
     short number = MODE == 2 ? // 64
-        28 : MODE == 1 ? //32
-        12 : 4;
-    i64 type = (location & ((u64) 0b11 << number)) >> number;
-    i64 x    = (location & ~((u64) 0b11 << number)) >> number;
+                       28
+                             : MODE == 1 ? // 32
+                                   12
+                                         : 4;
+    i64   type   = (location & ((u64) 0b11 << number)) >> number;
+    i64   x      = (location & ~((u64) 0b11 << number)) >> number;
 
-    switch(type) {
+    switch (type) {
         case 0b10:; // constant
         case 0b11:; // constant
             ERR = 3;
             return;
         case 01:; // register
-            if(x > 16) {
+            if (x > 16) {
                 ERR = 5; // register write OOB
                 return;
             }
 
-            REGISTERS[x] = data;
+            REGISTERS[ x ] = data;
             return;
         case 0b00:; // memory
-            if(x > 16) {
+            if (x > 16) {
                 ERR = 5; // register write OOB
                 return;
             }
 
-            i64 memaddr = REGISTERS[x];
-            if(memaddr > MEM_SIZE) {
+            i64 memaddr = REGISTERS[ x ];
+            if (memaddr > MEM_SIZE) {
                 ERR = 2; // memory write OOB
                 return;
             }
 
-            for(int i = 0; i < 8; i++) MEMORY[memaddr + i] = (data & (0b11111111 << ((7 - i) * 8))) >> ((7 - i) * 8);
+            for (int i = 0; i < 8; i++)
+                MEMORY[ memaddr + i ] = (data & (0b11111111 << ((7 - i) * 8))) >> ((7 - i) * 8);
     }
 }
 
@@ -120,14 +125,17 @@ void run_inst() {
             // 0b0000000000000000000000000000000001110000000000000000000000000000 flags ls28
             instruction.instruction
                 = (code & 0b1100000000000000000000000000000000000000000000000000000000000000) >> 62;
-            instruction.mode = (code & 0b0011000000000000000000000000000000000000000000000000000000000000) >> 60;
-            instruction.a1 = (code & 0b0010000000000000000000000000000000000000000000000000000000000000) >> 61;
-            instruction.left_raw = (code & 0b0001111111111111111111111111111110000000000000000000000000000000) >> 31;
-            instruction.left
-                = parsearg(instruction.left_raw);
-            instruction.right
-                = parsearg((code & 0b0000000000000000000000000000000001111111111111111111111111111110) >> 1);
-            instruction.flags = (code & 0b0000000000000000000000000000000001110000000000000000000000000000) >> 28;
+            instruction.mode
+                = (code & 0b0011000000000000000000000000000000000000000000000000000000000000) >> 60;
+            instruction.a1
+                = (code & 0b0010000000000000000000000000000000000000000000000000000000000000) >> 61;
+            instruction.left_raw
+                = (code & 0b0001111111111111111111111111111110000000000000000000000000000000) >> 31;
+            instruction.left  = parsearg(instruction.left_raw);
+            instruction.right = parsearg(
+                (code & 0b0000000000000000000000000000000001111111111111111111111111111110) >> 1);
+            instruction.flags
+                = (code & 0b0000000000000000000000000000000001110000000000000000000000000000) >> 28;
 
             break;
         }
@@ -144,15 +152,13 @@ void run_inst() {
             // 0b00000000000000000111111111111110 right ls1
             // 0b00000000000000000111000000000000 flags ls12
 
-            instruction.instruction
-                = (code & 0b11000000000000000000000000000000) >> 30;
-            instruction.mode
-                = (code & 0b00110000000000000000000000000000) >> 28;
-            instruction.a1    = (code & 0b00100000000000000000000000000000) >> 29;
-            instruction.left_raw  = (code & 0b00011111111111111000000000000000) >> 15;
-            instruction.left = parsearg(instruction.left_raw);
-            instruction.right = parsearg((code & 0b00000000000000000111111111111110) >> 1);
-            instruction.flags = (code & 0b00000000000000000111000000000000) >> 12;
+            instruction.instruction = (code & 0b11000000000000000000000000000000) >> 30;
+            instruction.mode        = (code & 0b00110000000000000000000000000000) >> 28;
+            instruction.a1          = (code & 0b00100000000000000000000000000000) >> 29;
+            instruction.left_raw    = (code & 0b00011111111111111000000000000000) >> 15;
+            instruction.left        = parsearg(instruction.left_raw);
+            instruction.right       = parsearg((code & 0b00000000000000000111111111111110) >> 1);
+            instruction.flags       = (code & 0b00000000000000000111000000000000) >> 12;
 
             break;
         }
@@ -163,11 +169,11 @@ void run_inst() {
                 = ((code & ((u64) 0b1 << 15)) >> 14) | ((code & ((u64) 0b1 << 14)) >> 14);
             instruction.mode
                 = ((code & ((u64) 0b1 << 13)) >> 12) | ((code & ((u64) 0b1 << 12)) >> 12);
-            instruction.a1    = (code & ((u64) 0b1 << 13)) >> 13;
-            instruction.left_raw  = (code & ((u64) 0b111111 << 7) >> 7) & 0b111111;
-            instruction.left = parsearg(instruction.left_raw);
-            instruction.right = parsearg(((code & ((u64) 0b111111 << 1)) >> 1) & 0b111111);
-            instruction.flags = (code & ((u64) 0b111 << 4)) >> 4;
+            instruction.a1       = (code & ((u64) 0b1 << 13)) >> 13;
+            instruction.left_raw = (code & ((u64) 0b111111 << 7) >> 7) & 0b111111;
+            instruction.left     = parsearg(instruction.left_raw);
+            instruction.right    = parsearg(((code & ((u64) 0b111111 << 1)) >> 1) & 0b111111);
+            instruction.flags    = (code & ((u64) 0b111 << 4)) >> 4;
 
             break;
         }
@@ -179,7 +185,7 @@ void run_inst() {
 
     switch (instruction.instruction) {
         case 0b00:; // MNG
-            switch(instruction.mode) {
+            switch (instruction.mode) {
                 case 00:; // HALT
                     ERR = 1;
                     return;
@@ -198,16 +204,14 @@ void run_inst() {
             writearg(instruction.left_raw, instruction.right);
             return;
         case 0b10:; // PC
-            switch(instruction.a1) {
-                case 0:;
-                    writearg(instruction.left_raw, PC + 1);
-                    return;
+            switch (instruction.a1) {
+                case 0:; writearg(instruction.left_raw, PC + 1); return;
                 case 1:;
-                    bit flags = (!!(instruction.flags & 0b100) && LAST == 0) ||
-                        (!!(instruction.flags & 0b10) && LAST < 0) ||
-                        (!!(instruction.flags & 0b1) && LAST > 0);
-                    
-                    if(flags) PC = instruction.left;
+                    bit flags = (!!(instruction.flags & 0b100) && LAST == 0)
+                                || (!!(instruction.flags & 0b10) && LAST < 0)
+                                || (!!(instruction.flags & 0b1) && LAST > 0);
+
+                    if (flags) PC = instruction.left;
                     return;
             }
         case 0b11: // MTH

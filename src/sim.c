@@ -19,7 +19,8 @@ int main() {
     MEMORY[ 4 ] = 0b01000000;
     MEMORY[ 5 ] = 0b00000000;
     MEMORY[ 6 ] = 0b00000000;
-    MEMORY[ 7 ] = 0b00000010;
+    MEMORY[ 7 ] = 0b00000110;
+
     run_inst(); // 1 cycle
     printf("rA: %lli", REGISTERS[0]);
 }

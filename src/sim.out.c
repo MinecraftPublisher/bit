@@ -1,7 +1,37 @@
+#include <stdio.h>
+
 #define MEM_SIZE 131072
 #define SYS_CODE 16384
 
-#include "manual.h"
+#define QUOTE(...) #__VA_ARGS__
+
+typedef unsigned long long uint64_t;
+typedef long long          int64_t;
+
+typedef int64_t  i64;
+typedef uint64_t u64;
+
+#define reg u64
+
+typedef unsigned char byte;
+typedef byte bool;
+typedef byte  bit;
+typedef char *string;
+
+extern int printf(const char *, ...);
+
+const string err_list = QUOTE(\n\n\n\n
+
+List of error codes:\n
+0 = No errors\n
+1 = Exit success/Halt\n
+2 = Memory write OOB\n
+3 = Write to constant\n
+4 = What the fuck even happened\n
+5 = Register write OOB\n
+
+\n\n\n\n
+);
 
 bool MEMORY[ MEM_SIZE ] = { [0 ... MEM_SIZE - 1] = 0 };
 
@@ -38,7 +68,11 @@ struct INSTRUCTION {
 };
 
 i64 parsearg(i64 arg) {
-    short number = MODE == 2 ? 28 : MODE == 1 ? 12 : 4;
+    short number = MODE == 2 ? // 64
+                       28
+                             : MODE == 1 ? // 32
+                                   12
+                                         : 4;
     i64   type   = (arg & ((u64) 0b11 << number)) >> number;
     i64   x      = (arg & ~((u64) 0b11 << number)) >> number;
 
@@ -60,7 +94,11 @@ i64 parsearg(i64 arg) {
 }
 
 void writearg(i64 location, i64 data) {
-    short number = MODE == 2 ? 28 : MODE == 1 ? 12 : 4;
+    short number = MODE == 2 ? // 64
+                       28
+                             : MODE == 1 ? // 32
+                                   12
+                                         : 4;
     i64   type   = (location & ((u64) 0b11 << number)) >> number;
     i64   x      = (location & ~((u64) 0b11 << number)) >> number;
 
@@ -218,4 +256,63 @@ void run_inst() {
                     return;
             }
     }
+}
+
+const char hexchars[] = "0123456789abcdef";
+
+byte findIndex(char l) {
+    switch (l) {
+        case '0' ... '9': return l - '0';
+        case 'a' ... 'z': return l - 'a' + 10;
+        case 'A' ... 'Z': return l - 'A' + 10;
+        default: return -1;
+    }
+}
+
+byte hex2int(char left, char right) {
+    bool imuseless = 0;
+    return (findIndex(left) << 4) | findIndex(right);
+}
+
+bool isHex(char x) { return findIndex(x) != (byte) -1; }
+
+int main() {
+    const string g = QUOTE(
+        MOV 01\n PADDING 0\n VALUE IN REGISTER rA\n 01 0000000000000000000000000000\n CONSTANT
+            VALUE\n 1 00000000000000000000000000001\n PADDING 0);
+    (void) g;
+
+    byte c[ 3 ] = { 11, 11, 254 / 2 };
+    int  index  = 3;
+    while (c[ index ] > (byte) 10) {
+        if (index == 3) index = 0;
+        char temp   = getchar();
+        bool _ishex = isHex(temp);
+
+        if (_ishex) {
+            if (index == 1) {
+                c[ 1 ]         = temp;
+                MEMORY[ PC++ ] = hex2int(c[ 0 ], c[ 1 ]);
+                index++;
+            } else if (index == 0) {
+                c[ 0 ] = temp;
+                index++;
+            }
+
+            index %= 2;
+        } else if (temp <= 10)
+            c[ index ] = 0;
+    }
+
+    PC = 0;
+
+    while (!ERR) {
+        run_inst();
+        PC += 8;
+    }
+
+    // mov $3, rA
+    // 48 00 00 00 40 00 00 06
+
+    printf("rA: %llu\ncycles: %llu", REGISTERS[ 0 ], (PC / 8) + 1);
 }

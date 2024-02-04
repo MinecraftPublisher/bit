@@ -6,3 +6,6 @@ out/
 # why is the assembler here
 basm
 bit
+
+.codechecker
+.cache

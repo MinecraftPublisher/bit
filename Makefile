@@ -22,5 +22,11 @@ run: assembler vm
 	clear
 	@endsuccess "anykey 'Press any key to run...'"
 	clear
-	@./build/basm test.basm | fold -w 64
-	@./build/basm test.basm > ./out/out.bit
+	@build/basm test.basm | fold -w 64
+	@build/basm test.basm > ./out/out.bit
+
+compacter: clean
+	bun build src/compact.js --compile --outfile build/doc
+
+print: compacter
+	build/doc sim.c manual.h bit.h > printout.txt
